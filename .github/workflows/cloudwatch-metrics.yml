@@ -74,7 +74,7 @@ jobs:
         aws cloudwatch get-metric-data \
           --metric-data-queries file://query.json \
           --start-time "$start_time" \
-          --end_time "$end_time" \
+          --end-time "$end_time" \  # Fix: changed end_time to end-time
           --output json > raw_metrics.json
 
     - name: Format and save metrics
