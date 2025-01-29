@@ -25,44 +25,7 @@ jobs:
 
     - name: Create metrics query file
       run: |
-        echo '{
-          "MetricDataQueries": [
-            {
-              "Id": "cpu_util",
-              "MetricStat": {
-                "Metric": {
-                  "Namespace": "AWS/EC2",
-                  "MetricName": "CPUUtilization",
-                  "Dimensions": [
-                    {
-                      "Name": "InstanceId",
-                      "Value": "i-0604ed0c65018e348"
-                    }
-                  ]
-                },
-                "Period": 300,
-                "Stat": "Average"
-              }
-            },
-            {
-              "Id": "memory_util",
-              "MetricStat": {
-                "Metric": {
-                  "Namespace": "CWAgent",
-                  "MetricName": "Memory % Committed Bytes In Use",
-                  "Dimensions": [
-                    {
-                      "Name": "InstanceId",
-                      "Value": "i-0604ed0c65018e348"
-                    }
-                  ]
-                },
-                "Period": 300,
-                "Stat": "Average"
-              }
-            }
-          ]
-        }' > query.json
+        echo '{"MetricDataQueries":[{"Id":"cpu_util","MetricStat":{"Metric":{"Namespace":"AWS/EC2","MetricName":"CPUUtilization","Dimensions":[{"Name":"InstanceId","Value":"i-0604ed0c65018e348"}]},"Period":300,"Stat":"Average"}},{"Id":"memory_util","MetricStat":{"Metric":{"Namespace":"CWAgent","MetricName":"Memory % Committed Bytes In Use","Dimensions":[{"Name":"InstanceId","Value":"i-0604ed0c65018e348"}]},"Period":300,"Stat":"Average"}}]}' > query.json
 
     - name: Download metrics
       run: |
