@@ -70,12 +70,7 @@ jobs:
       run: |
         start_time=$(date -d "6 hours ago" --iso-8601=seconds)
         end_time=$(date --iso-8601=seconds)
-        
-        aws cloudwatch get-metric-data \
-          --metric-data-queries file://query.json \
-          --start-time "$start_time" \
-          --end-time "$end_time" \  # Fix: changed end_time to end-time
-          --output json > raw_metrics.json
+        aws cloudwatch get-metric-data --metric-data-queries file://query.json --start-time "${start_time}" --end-time "${end_time}" --output json > raw_metrics.json
 
     - name: Format and save metrics
       run: |
