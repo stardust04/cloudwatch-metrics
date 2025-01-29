@@ -2,8 +2,12 @@ name: Download CloudWatch Metrics
 
 on:
   schedule:
-    - cron: '0 */6 * * *'  # Runs every 6 hours
-  workflow_dispatch:        # Allow manual trigger
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: write
 
 jobs:
   fetch-metrics:
@@ -70,31 +74,21 @@ jobs:
         aws cloudwatch get-metric-data \
           --metric-data-queries file://query.json \
           --start-time "$start_time" \
-          --end-time "$end_time" \
+          --end_time "$end_time" \
           --output json > raw_metrics.json
 
     - name: Format and save metrics
       run: |
-        # Create a timestamp for the filename
         timestamp=$(date +%Y%m%d_%H%M%S)
-        
-        # Create metrics directory if it doesn't exist
         mkdir -p metrics
-        
-        # Format JSON and save with timestamp
         jq . raw_metrics.json > "metrics/metrics_${timestamp}.json"
-        
-        # Also save as latest
         cp "metrics/metrics_${timestamp}.json" metrics/latest.json
 
     - name: Commit and push if changes exist
       run: |
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
         git config --global user.name "github-actions[bot]"
-        
         git add metrics/
-        
-        # Only commit if there are changes
         if git diff --staged --quiet; then
           echo "No changes to commit"
         else
