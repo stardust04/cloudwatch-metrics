@@ -25,8 +25,7 @@ jobs:
 
     - name: Create metrics query file
       run: |
-        cat > query.json << 'EOF'
-        {
+        echo '{
           "MetricDataQueries": [
             {
               "Id": "cpu_util",
@@ -63,8 +62,7 @@ jobs:
               }
             }
           ]
-        }
-        EOF
+        }' > query.json
 
     - name: Download metrics
       run: |
