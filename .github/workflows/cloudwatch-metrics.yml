@@ -1,0 +1,103 @@
+name: Download CloudWatch Metrics
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # Runs every 6 hours
+  workflow_dispatch:        # Allow manual trigger
+
+jobs:
+  fetch-metrics:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+        aws-region: us-east-1
+
+    - name: Create metrics query file
+      run: |
+        cat > query.json << 'EOF'
+        {
+          "MetricDataQueries": [
+            {
+              "Id": "cpu_util",
+              "MetricStat": {
+                "Metric": {
+                  "Namespace": "AWS/EC2",
+                  "MetricName": "CPUUtilization",
+                  "Dimensions": [
+                    {
+                      "Name": "InstanceId",
+                      "Value": "i-0604ed0c65018e348"
+                    }
+                  ]
+                },
+                "Period": 300,
+                "Stat": "Average"
+              }
+            },
+            {
+              "Id": "memory_util",
+              "MetricStat": {
+                "Metric": {
+                  "Namespace": "CWAgent",
+                  "MetricName": "Memory % Committed Bytes In Use",
+                  "Dimensions": [
+                    {
+                      "Name": "InstanceId",
+                      "Value": "i-0604ed0c65018e348"
+                    }
+                  ]
+                },
+                "Period": 300,
+                "Stat": "Average"
+              }
+            }
+          ]
+        }
+        EOF
+
+    - name: Download metrics
+      run: |
+        start_time=$(date -d "6 hours ago" --iso-8601=seconds)
+        end_time=$(date --iso-8601=seconds)
+        
+        aws cloudwatch get-metric-data \
+          --metric-data-queries file://query.json \
+          --start-time "$start_time" \
+          --end-time "$end_time" \
+          --output json > raw_metrics.json
+
+    - name: Format and save metrics
+      run: |
+        # Create a timestamp for the filename
+        timestamp=$(date +%Y%m%d_%H%M%S)
+        
+        # Create metrics directory if it doesn't exist
+        mkdir -p metrics
+        
+        # Format JSON and save with timestamp
+        jq . raw_metrics.json > "metrics/metrics_${timestamp}.json"
+        
+        # Also save as latest
+        cp "metrics/metrics_${timestamp}.json" metrics/latest.json
+
+    - name: Commit and push if changes exist
+      run: |
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        git config --global user.name "github-actions[bot]"
+        
+        git add metrics/
+        
+        # Only commit if there are changes
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "Update metrics data [skip ci]"
+          git push
+        fi
