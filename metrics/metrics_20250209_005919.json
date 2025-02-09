@@ -1,0 +1,19 @@
+{
+  "MetricDataResults": [
+    {
+      "Id": "cpu",
+      "Label": "AWS/EC2 CPUUtilization",
+      "Timestamps": [],
+      "Values": [],
+      "StatusCode": "Complete"
+    },
+    {
+      "Id": "memory",
+      "Label": "CWAgent Memory % Committed Bytes In Use",
+      "Timestamps": [],
+      "Values": [],
+      "StatusCode": "Complete"
+    }
+  ],
+  "Messages": []
+}
